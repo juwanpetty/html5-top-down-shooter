@@ -42,6 +42,23 @@
                 }
                 var Player1 = new Player();
 
+                function playerMove(e){
+                    if ( e.key === "w" ) {
+                        Player1.y -= 1;
+                    }
+                    if ( e.key === "s" ) {
+                        Player1.y += 1;
+                    }
+                    if ( e.key === "a" ) {
+                        Player1.x -= 1;
+                    }
+                    if ( e.key === "d" ) {
+                        Player1.x += 1;
+                    }
+                    return false;
+                }
+                canvas.addEventListener('keydown', playerMove, true); 
+
                 const mainDraw = () => {
                     if (Player1.x < 0 || Player1.x > WIDTH || Player1.y < 0 || Player1.y > HEIGHT) {
                         Player1.x = 395;
@@ -49,9 +66,6 @@
                         player1xChanger += (Math.random() * 2) - 1;
                         player1yChanger += (Math.random() * 2) - 1;
                     }
-
-                    Player1.x += (Math.random() * 2) - 1;
-                    Player1.y += (Math.random() * 2) - 1;
 
                     c.clearRect(0, 0, WIDTH, HEIGHT);
                     c.fillStyle = "red";
