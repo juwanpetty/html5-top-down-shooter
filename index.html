@@ -42,22 +42,30 @@
                 }
                 var Player1 = new Player();
 
+                let keys = [];
+
                 function playerMove(e){
-                    if ( e.key === "w" ) {
+                    if (keys[87]) {
                         Player1.y -= 1;
                     }
-                    if ( e.key === "s" ) {
+                    if (keys[83] ) {
                         Player1.y += 1;
                     }
-                    if ( e.key === "a" ) {
+                    if (keys[65] ) {
                         Player1.x -= 1;
                     }
-                    if ( e.key === "d" ) {
+                    if (keys[68] ) {
                         Player1.x += 1;
                     }
                     return false;
-                }
-                canvas.addEventListener('keydown', playerMove, true); 
+                } 
+                canvas.addEventListener("keydown", function (e) {
+                    keys[e.keyCode] = true;
+                });
+
+                canvas.addEventListener("keyup", function (e) {
+                    keys[e.keyCode] = false;
+                });
 
                 const mainDraw = () => {
                     if (Player1.x < 0 || Player1.x > WIDTH || Player1.y < 0 || Player1.y > HEIGHT) {
@@ -75,6 +83,8 @@
                     c.lineWidth = 1;
                     c.stroke();
                     c.fill();
+
+                    playerMove();
                 }
 
                 setInterval(mainDraw, 20); 
