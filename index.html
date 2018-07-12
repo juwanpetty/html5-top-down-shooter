@@ -13,6 +13,7 @@
         
         canvas {
             border: solid 1px black;
+            background: green;
             position: relative;
         }
         
@@ -25,10 +26,24 @@
         </style>
         
         <script>
-        
+            const init = () => {
+                const canvas = document.getElementById("canvas");
+                canvas.width = 800;
+                canvas.height = 600;
+                const c = canvas.getContext("2d");
+                const WIDTH = canvas.width;
+                const HEIGHT = canvas.height;
+
+                c.fillStyle = "red";
+                c.strokeStyle = "blue";
+                c.rect(10,10,10,100);
+                c.lineWidth = 4;
+                c.stroke();
+                c.fill();
+            }
         </script>
 </head>
-<body>
+<body onload="init()">
     
     <div id = "holder">
         <canvas id="canvas" width="800" height="600" tabindex='1'></canvas>
