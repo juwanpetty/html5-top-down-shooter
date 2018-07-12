@@ -34,25 +34,30 @@
                 const WIDTH = canvas.width;
                 const HEIGHT = canvas.height;
 
-                let player1x = 395;
-                let player1y = 295;
+                function Player () {
+                    this.x = 395;
+                    this.y = 295;
+                    this.w = 10;
+                    this.h = 10;
+                }
+                var Player1 = new Player();
 
                 const mainDraw = () => {
-                    if (player1x < 0 || player1x > WIDTH || player1y < 0 || player1y > HEIGHT) {
-                        player1x = 395;
-                        player1y = 295;
+                    if (Player1.x < 0 || Player1.x > WIDTH || Player1.y < 0 || Player1.y > HEIGHT) {
+                        Player1.x = 395;
+                        Player1.y = 295;
                         player1xChanger += (Math.random() * 2) - 1;
                         player1yChanger += (Math.random() * 2) - 1;
                     }
 
-                    player1x += (Math.random() * 2) - 1;
-                    player1y += (Math.random() * 2) - 1;
+                    Player1.x += (Math.random() * 2) - 1;
+                    Player1.y += (Math.random() * 2) - 1;
 
                     c.clearRect(0, 0, WIDTH, HEIGHT);
                     c.fillStyle = "red";
                     c.strokeStyle = "blue";
                     c.beginPath();
-                    c.rect(player1x, player1y, 10,10);
+                    c.rect(Player1.x, Player1.y, Player1.w,Player1.h);
                     c.lineWidth = 1;
                     c.stroke();
                     c.fill();
