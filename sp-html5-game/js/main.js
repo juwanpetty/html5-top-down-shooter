@@ -62,7 +62,13 @@ const player = {
     hp: 10,
     width: 20,
     height: 20,
-    color: 'green'
+    color: 'green',
+    attackSpeed: 1, 
+    attackCounter: 0,
+    pressingDown: false,
+    pressingUp: false,
+    pressingLeft: false,
+    pressingRight: false
 }
 
 // Enemy
@@ -82,7 +88,7 @@ const Enemy = (id, x, y, speedX, speedY, width, height, color) => {
 }
 
 // Upgrades
-const Upgrade = (id, x, y, speedX, speedY, width, height, color) => {
+const Upgrade = (id, x, y, speedX, speedY, width, height, color, category) => {
     let upgrade = {
         x: x,
         y: y,
@@ -92,7 +98,8 @@ const Upgrade = (id, x, y, speedX, speedY, width, height, color) => {
         id: id,
         width: width,
         height: height,
-        color: color || 'orange'
+        color: color || 'orange',
+        category, category
     };
     upgradeList[id] = upgrade;
 }
@@ -108,7 +115,8 @@ const Bullet = (id, x, y, speedX, speedY, width, height, color) => {
         id: id,
         width: width,
         height: height,
-        color: color || 'black'
+        color: color || 'black',
+        timer: 0
     };
     bulletList[id] = bullet;
 }
@@ -133,8 +141,13 @@ const randomlyGenerateUpgrade = () => {
     let speedX = 0;
     let speedY = 0;
     let id = Math.random();
+    let color;
+    let category;
+    Math.random() < 0.5 ? category = 'score' : category = 'attackSpeed';
 
-    Upgrade(id, x, y, speedX, speedY, width, height);
+    category === 'score' ? color = 'orange' : color = 'lightgreen';
+
+    Upgrade(id, x, y, speedX, speedY, width, height, color,  category);
 }
 
 const randomlyGenerateBullet = () => {
@@ -152,26 +165,65 @@ const randomlyGenerateBullet = () => {
     Bullet(id, x, y, speedX, speedY, width, height);
 }
 
-// Player Movement Based On Mouse Position
-document.addEventListener("mousemove", (mouse) => {
-    let mouseX = mouse.clientX - canvas.getBoundingClientRect().left;
-    let mouseY = mouse.clientY - canvas.getBoundingClientRect().top;
+// Track player movement based on keyboard press
+document.addEventListener("keydown", (event) => {
+    if (event.keyCode === 68 || event.keyCode === 39) {         // move right
+        player.pressingRight = true;
+    } else if (event.keyCode === 65 || event.keyCode === 37) {  // move left
+        player.pressingLeft = true;
+    } else if (event.keyCode === 87 || event.keyCode === 38) {  // move up
+        player.pressingUp = true;
+    } else if (event.keyCode === 83 || event.keyCode === 40) {  // move down
+        player.pressingDown = true;
+    }
+});
 
-    // Player out of bounds prevention
-    if (mouseX < player.width / 2) {
-        mouseX = player.width / 2;
-    } else if (mouseX > canvasWidth - player.width / 2) {
-        mouseX = canvasWidth - player.width / 2;
+document.addEventListener("keyup", (event) => {
+    if (event.keyCode === 68 || event.keyCode === 39) {         // move right
+        player.pressingRight = false;
+    } else if (event.keyCode === 65 || event.keyCode === 37) {  // move left
+        player.pressingLeft = false;
+    } else if (event.keyCode === 87 || event.keyCode === 38) {  // move up
+        player.pressingUp = false;
+    } else if (event.keyCode === 83 || event.keyCode === 40) {  // move down
+        player.pressingDown = false;
+    }
+});
+
+const updatePlayerPosition = () => {
+    if (player.pressingRight) {
+        player.x += 10;
+    }
+    if (player.pressingLeft) {
+        player.x -= 10;
+    }
+    if (player.pressingUp) {
+        player.y -= 10;
+    }
+    if (player.pressingDown) {
+        player.y += 10;
     }
 
-    if (mouseY < player.height / 2) {
-        mouseY = player.height / 2;
-    } else if (mouseY > canvasHeight - player.height / 2) {
-        mouseY = canvasHeight - player.height / 2;
+    // check for player out of bounds
+    if (player.x < player.width / 2) {
+        player.x = player.width / 2;
+    } else if (player.x > canvasWidth - player.width / 2) {
+        player.x = canvasWidth - player.width / 2;
     }
 
-    player.x = mouseX;
-    player.y = mouseY;
+    if (player.y < player.height / 2) {
+        player.y = player.height / 2;
+    } else if (player.y > canvasHeight - player.height / 2) {
+        player.y = canvasHeight - player.height / 2;
+    }
+}
+
+// Track player attack
+document.addEventListener("click", (mouse) => {
+    if (player.attackCounter > 25) {
+        randomlyGenerateBullet();
+        player.attackCounter = 0;
+    }
 });
 
 const updateEntity = entity => {
@@ -226,23 +278,45 @@ const update = () => {
     if (frameCount % 75 === 0) { // every 3 seconds
         randomlyGenerateUpgrade();
     }
-    if (frameCount % 25 === 0) { // every 1 seconds
-        randomlyGenerateBullet();
-    }
+
+    player.attackCounter += player.attackSpeed;
 
     for (let upgrade in upgradeList) {
         updateEntity(upgradeList[upgrade]);
 
         if (hasCollided(player, upgradeList[upgrade])) {
-            score += 100;
+            if (upgradeList[upgrade].category === 'score') {
+                score += 100;
+            } else if (upgradeList[upgrade].category === 'attackSpeed') {
+                player.attackSpeed++;
+            }
+            
             delete upgradeList[upgrade];
         }
     }
 
     for (let bullet in bulletList) {
         updateEntity(bulletList[bullet]);
+
+        bulletList[bullet].timer++;
+
+        if (bulletList[bullet].timer > 100) {
+            delete bulletList[bullet]; // delete bullet
+            continue;
+        }
+
+        for (let enemy in enemyList) {
+            if (hasCollided(bulletList[bullet], enemyList[enemy])) {
+                delete bulletList[bullet]; // delete bullet
+                delete enemyList[enemy]; // delete enemy
+                
+                // break out of loop once bullet is removed
+                break;
+            }
+        }
     }
 
+    updatePlayerPosition();
     drawEntity(player);    
     ctx.fillText(player.hp + ' HP', 0, 30);
     ctx.fillText('Score: ' + score, 200, 30);
